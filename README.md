@@ -22,7 +22,6 @@ In order to proceed effectively with the post-exploitation module, it's essentia
     - Create a new DWORD (32-bit) value named `DisableAntiSpyware` and set its value to `1`.
 
 
-
 ### Disabling Remote UAC (User Account Control)
 
 To complete the setup, it's crucial to disable Remote UAC. Follow these steps:
