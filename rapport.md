@@ -34,7 +34,7 @@ Cette machine cible est utilisée pour la démonstration de l'utilisation du mod
 Le module "Big Brogger" fonctionne en plusieurs étapes :
 
 1. **Migration vers explorer.exe :** Le module migre vers le processus Explorer.exe pour une persistance accrue et une dissimulation efficace.
-   
+
 2. **Démarrage du keylogger :** Le module démarre le keylogger en utilisant la fonction `keyscan_start` pour capturer les saisies au clavier.
 
 3. **Capture et enregistrement des saisies :** Les saisies au clavier sont récupérées à l'aide de la fonction `keyscan_dump` et sont enregistrées dans un fichier spécifié par l'utilisateur, le cas échéant.
@@ -54,6 +54,22 @@ client.ui.keyscan_start
 # Extrait de code pour capturer et enregistrer les saisies
 output_handle.puts(captured_keys) if output_handle != nil
 ```
+
+### Démonstration
+
+Ceci est un module de post-exploitation, donc vous devrez obtenir l'accès à la machine Windows. Vous pouvez le faire de n'importe quelle manière, mais nous utiliserons `windows/smb/psexec` dans Metasploit pour la démonstration.
+
+Tout d'abord, utilisez psexec pour obtenir une session avec un identifiant valide :
+
+<img src="assets/kali-1.png" alt="kali-1" width="600"/>
+
+Ensuite, vous pouvez mettre en arrière-plan la session Meterpreter et exécuter le keylogger :
+
+<img src="assets/kali-2.png" alt="kali-2" width="600"/>
+
+En ayant écrit quelque chose dans la machine Windows:
+
+<img src="assets/windows-1.png" alt="windows-1" width="600"/>
 
 ### Analyse Critique des Résultats
 
